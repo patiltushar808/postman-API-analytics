@@ -1,4 +1,4 @@
-name: Automated API tests using Newman
+name: Automated API tests using Postman CLI
 
 on: push
 
@@ -7,21 +7,22 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '14'
-      - name: Install Newman
-        run: npm install -g newman newman-reporter-html
-      - name: Run API tests with Newman and generate report
+      - name: Install Postman CLI
         run: |
-          newman run "https://api.getpostman.com/collections/30004335-98fcaed5-4ec9-4beb-ba83-50cfbaccc8c1?apikey=${{ secrets.POSTMAN_API_KEY }}" \
-          --environment "https://api.getpostman.com/environments/30004335-405e48ed-6f85-48e8-8621-78490293e471?apikey=${{ secrets.POSTMAN_API_KEY }}" \
-          --reporters cli,html \
-          --reporter-html-export "newman-report.html"
-      - name: Upload test report
-        if: always()
-        uses: actions/upload-artifact@v3
+          powershell.exe -NoProfile -InputFormat None -ExecutionPolicy AllSigned -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))"
+      - name: Login to Postman CLI
+        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+      - name: Run API tests
+        run: |
+          postman collection run "30004335-98fcaed5-4ec9-4beb-ba83-50cfbaccc8c1" -e "30004335-405e48ed-6f85-48e8-8621-78490293e471" --reporters cli,html --reporter-html-export "report.html"
+      - name: Create directory and sample file
+        run: |
+          mkdir -p path/to/artifact
+          echo hello > path/to/artifact/world.txt
+      - name: Upload report and sample file as artifacts
+        uses: actions/upload-artifact@v4
         with:
-          name: newman-report
-          path: newman-report.html
+          name: my-artifact
+          path: |
+            report.html
+            path/to/artifact/world.txt
