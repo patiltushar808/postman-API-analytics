@@ -1,4 +1,4 @@
-name: Automated API tests using Postman CLI
+name: Automated API tests using Newman
 
 on: 
     workflow_dispatch:
@@ -9,14 +9,15 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Postman CLI
-        run: |
-          powershell.exe -NoProfile -InputFormat None -ExecutionPolicy AllSigned -Command "[System.Net.ServicePointManager]::SecurityProtocol = 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://dl-cli.pstmn.io/install/win64.ps1'))"
-      - name: Login to Postman CLI
-        run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - name: Install Newman
+        run: npm install -g newman
       - name: Run API tests and generate report
         run: |
-          postman collection run "30004335-98fcaed5-4ec9-4beb-ba83-50cfbaccc8c1" -e "30004335-405e48ed-6f85-48e8-8621-78490293e471" --reporters html --reporter-html-export "newman/newman-report.html"
+          newman run "30004335-98fcaed5-4ec9-4beb-ba83-50cfbaccc8c1" -e "30004335-405e48ed-6f85-48e8-8621-78490293e471" --reporters cli,html --reporter-html-export "newman/newman-report.html"
       - name: Upload report artifact
         uses: actions/upload-artifact@v3
         with:
