@@ -17,3 +17,8 @@ jobs:
       - name: Run API tests
         run: |
           postman collection run "30004335-91555d7e-bf2c-47ea-ad84-951e670592b0" -e "30004335-405e48ed-6f85-48e8-8621-78490293e471"
+      - name: Upload report
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-test-report
+          path: report.json
